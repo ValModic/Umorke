@@ -66,6 +66,18 @@
     .error {
       border: 2px solid red !important;
     }
+
+    /* Novo: vnosna polja */
+    .inputs {
+      margin-top: 20px;
+    }
+
+    .inputs input {
+      margin: 5px;
+      padding: 8px;
+      font-size: 16px;
+      width: 160px;
+    }
   </style>
 </head>
 <body>
@@ -80,6 +92,14 @@
   </div>
 
   <table id="detectiveGrid"></table>
+
+  <!-- Premaknjeno: 4 vnosna polja pod tabelo -->
+  <div class="inputs">
+    <input type="text" id="whoInput" placeholder="Kdo?" />
+    <input type="text" id="whereInput" placeholder="Kje?" />
+    <input type="text" id="weaponInput" placeholder="S čim?" />
+    <input type="text" id="whyInput" placeholder="Zakaj?" />
+  </div>
 
   <script>
     let currentMark = "";
@@ -120,7 +140,6 @@
     const table = document.getElementById("detectiveGrid");
     const cells = [];
 
-    // Funkcija za shranjevanje stanja mreže v localStorage
     function saveState() {
       const state = cells.map(row =>
         row.map(cell => (cell ? cell.textContent : null))
@@ -128,7 +147,6 @@
       localStorage.setItem("detectiveGridState", JSON.stringify(state));
     }
 
-    // Funkcija za nalaganje stanja mreže iz localStorage
     function loadState() {
       const savedState = localStorage.getItem("detectiveGridState");
       if (!savedState) return;
@@ -140,6 +158,26 @@
           }
         }
       }
+    }
+
+    function saveInputs() {
+      localStorage.setItem("whoInput", document.getElementById("whoInput").value);
+      localStorage.setItem("whereInput", document.getElementById("whereInput").value);
+      localStorage.setItem("weaponInput", document.getElementById("weaponInput").value);
+      localStorage.setItem("whyInput", document.getElementById("whyInput").value);
+    }
+
+    function loadInputs() {
+      document.getElementById("whoInput").value = localStorage.getItem("whoInput") || "";
+      document.getElementById("whereInput").value = localStorage.getItem("whereInput") || "";
+      document.getElementById("weaponInput").value = localStorage.getItem("weaponInput") || "";
+      document.getElementById("whyInput").value = localStorage.getItem("whyInput") || "";
+    }
+
+    function attachInputListeners() {
+      ["whoInput", "whereInput", "weaponInput", "whyInput"].forEach(id => {
+        document.getElementById(id).addEventListener("input", saveInputs);
+      });
     }
 
     function createCell(r, c) {
@@ -196,7 +234,7 @@
             if (warnCount === 0) {
               cellWarnings.set(cell, 1);
               cell.classList.add("error");
-              return; // prvi klik blokira postavitev kljukice
+              return;
             } else {
               cellWarnings.set(cell, 0);
               cell.classList.remove("error");
@@ -205,7 +243,6 @@
         }
 
         if (currentMark === "") {
-          // Če brišeš kljukico, pobriši vrstico in stolpec v bloku
           if (cell.textContent === "✓") {
             const blockRowStart = Math.floor(r / 4) * 4;
             const blockColStart = Math.floor(c / 4) * 4;
@@ -225,10 +262,8 @@
             }
           }
         } else {
-          // postavi znak
           cell.textContent = currentMark;
 
-          // Če je kljukica, dodaj križce v isti vrstici in stolpcu znotraj bloka
           if (currentMark === "✓") {
             const blockRow = Math.floor(r / 4) * 4;
             const blockCol = Math.floor(c / 4) * 4;
@@ -261,14 +296,12 @@
           }
         }
 
-        // Po vsakem kliku shrani stanje v localStorage
         saveState();
       });
 
       return cell;
     }
 
-    // zgradimo tabelo
     const headerRow = document.createElement("tr");
     columnLabels.forEach((label, i) => {
       const th = document.createElement("th");
@@ -294,8 +327,9 @@
       table.appendChild(tr);
     }
 
-    // Po končani gradnji mreže naloži stanje iz localStorage
     loadState();
+    loadInputs();
+    attachInputListeners();
 
     function clearBlock() {
       if (!selectedCellCoords) return;
