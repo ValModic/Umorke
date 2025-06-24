@@ -2,12 +2,12 @@
 <html lang="sl">
 <head>
   <meta charset="UTF-8">
-  <title>Detektivska super mreža</title>
+  <title>Logična mreža</title>
   <style>
     body {
       font-family: sans-serif;
       padding: 20px;
-      background-color: #f9f9f9;
+      background-color: #ffffff;
       text-align: center;
     }
 
@@ -21,7 +21,7 @@
       height: 50px;
       text-align: center;
       border: 1px solid #aaa;
-      font-size: 24px;
+      font-size: 20px;
       cursor: pointer;
       background-color: white;
     }
@@ -42,47 +42,55 @@
       padding: 10px 20px;
       font-size: 16px;
     }
+
+    .legend {
+      margin-top: 40px;
+      text-align: left;
+      max-width: 400px;
+      margin-inline: auto;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
 
-<h1>🕵️ Velika logična mreža (6×6 s praznim kotom)</h1>
+<h1>🔍 Detektivska mreža 6×6</h1>
 
-<table id="detectiveGrid">
+<table id="grid">
   <tr>
     <th></th>
-    <th>O1</th><th>O2</th><th>O3</th>
-    <th>K1</th><th>K2</th><th>K3</th>
+    <th>S1</th><th>S2</th><th>S3</th>
+    <th>C1</th><th>C2</th><th>C3</th>
   </tr>
-  <!-- Vrstice 1–3 (Osumljenci × Vse) -->
+  <!-- Vrstice W1–W3 (osumljenci × orožja in kraji) -->
   <tr>
-    <th>S1</th>
-    <td></td><td></td><td></td>
-    <td></td><td></td><td></td>
-  </tr>
-  <tr>
-    <th>S2</th>
+    <th>W1</th>
     <td></td><td></td><td></td>
     <td></td><td></td><td></td>
   </tr>
   <tr>
-    <th>S3</th>
+    <th>W2</th>
     <td></td><td></td><td></td>
     <td></td><td></td><td></td>
   </tr>
-  <!-- Vrstice 4–6 (S1–S3 × samo O1–O3, ostalo PRAZNO) -->
   <tr>
-    <th>S1</th>
+    <th>W3</th>
+    <td></td><td></td><td></td>
+    <td></td><td></td><td></td>
+  </tr>
+  <!-- Vrstice C1–C3 (osumljenci × kraj) – desni del prazen -->
+  <tr>
+    <th>C1</th>
     <td></td><td></td><td></td>
     <td class="blank"></td><td class="blank"></td><td class="blank"></td>
   </tr>
   <tr>
-    <th>S2</th>
+    <th>C2</th>
     <td></td><td></td><td></td>
     <td class="blank"></td><td class="blank"></td><td class="blank"></td>
   </tr>
   <tr>
-    <th>S3</th>
+    <th>C3</th>
     <td></td><td></td><td></td>
     <td class="blank"></td><td class="blank"></td><td class="blank"></td>
   </tr>
@@ -90,14 +98,25 @@
 
 <button onclick="resetGrid()">🔄 Počisti mrežo</button>
 
+<div class="legend">
+  <h3>🗂️ Legenda:</h3>
+  <ul>
+    <li><strong>S1–S3</strong>: Osumljenci</li>
+    <li><strong>W1–W3</strong>: Orožja</li>
+    <li><strong>C1–C3</strong>: Kraji</li>
+    <li><strong>✓</strong>: Potrjeno drži</li>
+    <li><strong>✗</strong>: Dokazano ne drži</li>
+    <li>Prazno: Še ni znano</li>
+  </ul>
+</div>
+
 <script>
   const symbols = ["", "✓", "✗"];
-
-  const table = document.getElementById("detectiveGrid");
+  const table = document.getElementById("grid");
   const cells = table.querySelectorAll("td:not(.blank)");
 
   cells.forEach((cell, index) => {
-    const saved = localStorage.getItem("detectiveGrid-cell-" + index);
+    const saved = localStorage.getItem("grid-cell-" + index);
     if (saved !== null) {
       cell.textContent = saved;
     }
@@ -106,14 +125,14 @@
       const current = cell.textContent;
       const next = symbols[(symbols.indexOf(current) + 1) % symbols.length];
       cell.textContent = next;
-      localStorage.setItem("detectiveGrid-cell-" + index, next);
+      localStorage.setItem("grid-cell-" + index, next);
     });
   });
 
   function resetGrid() {
     cells.forEach((cell, index) => {
       cell.textContent = "";
-      localStorage.removeItem("detectiveGrid-cell-" + index);
+      localStorage.removeItem("grid-cell-" + index);
     });
   }
 </script>
