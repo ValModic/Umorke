@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8">
+  <title>Velika detektivska mreža</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+      text-align: center;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 0 auto;
+    }
+
+    th, td {
+      width: 50px;
+      height: 50px;
+      text-align: center;
+      border: 1px solid #888;
+      font-size: 24px;
+      cursor: pointer;
+      background-color: white;
+    }
+
+    th {
+      background-color: #ddd;
+      font-weight: normal;
+    }
+
+    .label-col {
+      background-color: #eee;
+      font-weight: bold;
+    }
+
+    button {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🔍 Velika logična mreža</h1>
+
+<table id="bigTable">
+  <tr>
+    <th></th>
+    <th>O1</th><th>O2</th><th>O3</th>
+    <th>K1</th><th>K2</th><th>K3</th>
+  </tr>
+  <tr>
+    <th class="label-col">S1</th>
+    <td></td><td></td><td></td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr>
+    <th class="label-col">S2</th>
+    <td></td><td></td><td></td>
+    <td></td><td></td><td></td>
+  </tr>
+  <tr>
+    <th class="label-col">S3</th>
+    <td></td><td></td><td></td>
+    <td></td><td></td><td></td>
+  </tr>
+</table>
+
+<button onclick="resetTable()">🔄 Počisti mrežo</button>
+
+<script>
+  const symbols = ["", "✓", "✗"];
+
+  const table = document.getElementById("bigTable");
+  const cells = table.querySelectorAll("td");
+
+  cells.forEach((cell, index) => {
+    const saved = localStorage.getItem("bigTable-cell-" + index);
+    if (saved !== null) {
+      cell.textContent = saved;
+    }
+
+    cell.addEventListener("click", () => {
+      const current = cell.textContent;
+      const next = symbols[(symbols.indexOf(current) + 1) % symbols.length];
+      cell.textContent = next;
+      localStorage.setItem("bigTable-cell-" + index, next);
+    });
+  });
+
+  function resetTable() {
+    cells.forEach((cell, index) => {
+      cell.textContent = "";
+      localStorage.removeItem("bigTable-cell-" + index);
+    });
+  }
+</script>
+
+</body>
+      </html>
