@@ -2,7 +2,7 @@
 <html lang="sl">
 <head>
   <meta charset="UTF-8">
-  <title>Logična mreža</title>
+  <title>Detektivska Mreza</title>
   <style>
     body {
       font-family: sans-serif;
@@ -17,13 +17,15 @@
     }
 
     th, td {
-      width: 50px;
-      height: 50px;
+      width: 40px;
+      height: 40px;
       text-align: center;
-      border: 1px solid #aaa;
-      font-size: 20px;
+      border: 1px solid #999;
+      font-size: 16px;
       cursor: pointer;
       background-color: white;
+      user-select: none;
+      transition: box-shadow 0.2s;
     }
 
     th {
@@ -33,107 +35,183 @@
     }
 
     .blank {
-      background-color: #f0f0f0;
+      background-color: #eee;
       pointer-events: none;
+      border: none;
     }
 
-    button {
-      margin-top: 30px;
-      padding: 10px 20px;
-      font-size: 16px;
+    .controls {
+      margin-top: 20px;
     }
 
-    .legend {
-      margin-top: 40px;
-      text-align: left;
-      max-width: 400px;
-      margin-inline: auto;
+    .mark-button {
+      margin: 5px;
+      padding: 8px 16px;
       font-size: 16px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 6px;
+    }
+
+    .mark-button.selected {
+      border-color: #007bff;
+      background-color: #e6f0ff;
+    }
+
+    .selected {
+      box-shadow: 0 0 0 3px #007bff inset;
     }
   </style>
 </head>
 <body>
 
-<h1>🔍 Detektivska mreža 6×6</h1>
+<h1>🔍 Detektivska Mreža 12×12</h1>
 
-<table id="grid">
-  <tr>
-    <th></th>
-    <th>S1</th><th>S2</th><th>S3</th>
-    <th>C1</th><th>C2</th><th>C3</th>
-  </tr>
-  <!-- Vrstice W1–W3 (osumljenci × orožja in kraji) -->
-  <tr>
-    <th>W1</th>
-    <td></td><td></td><td></td>
-    <td></td><td></td><td></td>
-  </tr>
-  <tr>
-    <th>W2</th>
-    <td></td><td></td><td></td>
-    <td></td><td></td><td></td>
-  </tr>
-  <tr>
-    <th>W3</th>
-    <td></td><td></td><td></td>
-    <td></td><td></td><td></td>
-  </tr>
-  <!-- Vrstice C1–C3 (osumljenci × kraj) – desni del prazen -->
-  <tr>
-    <th>C1</th>
-    <td></td><td></td><td></td>
-    <td class="blank"></td><td class="blank"></td><td class="blank"></td>
-  </tr>
-  <tr>
-    <th>C2</th>
-    <td></td><td></td><td></td>
-    <td class="blank"></td><td class="blank"></td><td class="blank"></td>
-  </tr>
-  <tr>
-    <th>C3</th>
-    <td></td><td></td><td></td>
-    <td class="blank"></td><td class="blank"></td><td class="blank"></td>
-  </tr>
-</table>
-
-<button onclick="resetGrid()">🔄 Počisti mrežo</button>
-
-<div class="legend">
-  <h3>🗂️ Legenda:</h3>
-  <ul>
-    <li><strong>S1–S3</strong>: Osumljenci</li>
-    <li><strong>W1–W3</strong>: Orožja</li>
-    <li><strong>C1–C3</strong>: Kraji</li>
-    <li><strong>✓</strong>: Potrjeno drži</li>
-    <li><strong>✗</strong>: Dokazano ne drži</li>
-    <li>Prazno: Še ni znano</li>
-  </ul>
+<div class="controls">
+  <button class="mark-button" id="btn-check" onclick="setMark('✓', this)">✓</button>
+  <button class="mark-button" id="btn-cross" onclick="setMark('✗', this)">✗</button>
+  <button class="mark-button" id="btn-erase" onclick="setMark('', this)">🧽</button>
+  <button class="mark-button" onclick="clearBlock()">🧼 Počisti 4×4 blok</button>
+  <button class="mark-button" onclick="resetGrid()">🔁 Resetiraj mrežo</button>
 </div>
 
-<script>
-  const symbols = ["", "✓", "✗"];
-  const table = document.getElementById("grid");
-  const cells = table.querySelectorAll("td:not(.blank)");
+<table id="detectiveGrid"></table>
 
-  cells.forEach((cell, index) => {
-    const saved = localStorage.getItem("grid-cell-" + index);
-    if (saved !== null) {
-      cell.textContent = saved;
+<script>
+  let currentMark = "";
+  let lastSelectedCell = null;
+  let lastButton = null;
+  let selectedCellCoords = null;
+
+  function setMark(mark, button) {
+    currentMark = mark;
+    if (lastButton) lastButton.classList.remove("selected");
+    button.classList.add("selected");
+    lastButton = button;
+  }
+
+  const columnLabels = ["", "S1", "S2", "S3", "S4", "M1", "M2", "M3", "M4", "C1", "C2", "C3", "C4"];
+  const rowLabels = ["", "W1", "W2", "W3", "W4", "C1", "C2", "C3", "C4", "M1", "M2", "M3", "M4"];
+  const blankCells = new Set();
+
+  blankCells.add("-1,-1");
+
+  for (let i = 4; i < 8; i++) {
+    for (let j = 8; j < 12; j++) {
+      blankCells.add(`${i},${j}`);
+    }
+  }
+  for (let i = 8; i < 12; i++) {
+    for (let j = 4; j < 8; j++) {
+      blankCells.add(`${i},${j}`);
+    }
+  }
+  for (let i = 8; i < 12; i++) {
+    for (let j = 8; j < 12; j++) {
+      blankCells.add(`${i},${j}`);
+    }
+  }
+
+  const table = document.getElementById("detectiveGrid");
+  const cells = [];
+
+  const createCell = (r, c) => {
+    const key = `${r},${c}`;
+    const cell = document.createElement("td");
+
+    if (blankCells.has(key)) {
+      cell.classList.add("blank");
+      return cell;
     }
 
+    const style = [];
+    if (r % 4 === 0) style.push("border-top: 2px solid black;");
+    if ((r + 1) % 4 === 0) style.push("border-bottom: 2px solid black;");
+    if (c % 4 === 0) style.push("border-left: 2px solid black;");
+    if ((c + 1) % 4 === 0) style.push("border-right: 2px solid black;");
+    cell.setAttribute("style", style.join(" "));
+
     cell.addEventListener("click", () => {
-      const current = cell.textContent;
-      const next = symbols[(symbols.indexOf(current) + 1) % symbols.length];
-      cell.textContent = next;
-      localStorage.setItem("grid-cell-" + index, next);
+      if (lastSelectedCell) lastSelectedCell.classList.remove("selected");
+      cell.classList.add("selected");
+      lastSelectedCell = cell;
+      selectedCellCoords = [r, c];
+      cell.textContent = currentMark;
+
+      if (currentMark === "✓") {
+        const blockRow = Math.floor(r / 4) * 4;
+        const blockCol = Math.floor(c / 4) * 4;
+        for (let i = blockRow; i < blockRow + 4; i++) {
+          if (i !== r) {
+            const cellInRow = cells[i][c];
+            if (cellInRow && !cellInRow.classList.contains("blank") && cellInRow.textContent !== "✓") {
+              cellInRow.textContent = "✗";
+            }
+          }
+        }
+        for (let j = blockCol; j < blockCol + 4; j++) {
+          if (j !== c) {
+            const cellInCol = cells[r][j];
+            if (cellInCol && !cellInCol.classList.contains("blank") && cellInCol.textContent !== "✓") {
+              cellInCol.textContent = "✗";
+            }
+          }
+        }
+      }
     });
+
+    return cell;
+  };
+
+  const headerRow = document.createElement("tr");
+  columnLabels.forEach((label, i) => {
+    const th = document.createElement("th");
+    if (i === 0) th.classList.add("blank");
+    th.textContent = label;
+    headerRow.appendChild(th);
   });
+  table.appendChild(headerRow);
+
+  for (let r = 0; r < 12; r++) {
+    const tr = document.createElement("tr");
+    const th = document.createElement("th");
+    th.textContent = rowLabels[r + 1];
+    tr.appendChild(th);
+
+    const row = [];
+    for (let c = 0; c < 12; c++) {
+      const cell = createCell(r, c);
+      row.push(cell);
+      tr.appendChild(cell);
+    }
+    cells.push(row);
+    table.appendChild(tr);
+  }
+
+  function clearBlock() {
+    if (!selectedCellCoords) return;
+    const [r, c] = selectedCellCoords;
+    const blockRow = Math.floor(r / 4) * 4;
+    const blockCol = Math.floor(c / 4) * 4;
+    for (let i = blockRow; i < blockRow + 4; i++) {
+      for (let j = blockCol; j < blockCol + 4; j++) {
+        const cell = cells[i][j];
+        if (cell && !cell.classList.contains("blank")) {
+          cell.textContent = "";
+        }
+      }
+    }
+  }
 
   function resetGrid() {
-    cells.forEach((cell, index) => {
-      cell.textContent = "";
-      localStorage.removeItem("grid-cell-" + index);
-    });
+    for (let r = 0; r < 12; r++) {
+      for (let c = 0; c < 12; c++) {
+        const cell = cells[r][c];
+        if (cell && !cell.classList.contains("blank")) {
+          cell.textContent = "";
+        }
+      }
+    }
   }
 </script>
 
