@@ -2,12 +2,12 @@
 <html lang="sl">
 <head>
   <meta charset="UTF-8">
-  <title>Velika detektivska mreža</title>
+  <title>Detektivska super mreža</title>
   <style>
     body {
       font-family: sans-serif;
-      background: #f4f4f4;
       padding: 20px;
+      background-color: #f9f9f9;
       text-align: center;
     }
 
@@ -20,20 +20,21 @@
       width: 50px;
       height: 50px;
       text-align: center;
-      border: 1px solid #888;
+      border: 1px solid #aaa;
       font-size: 24px;
       cursor: pointer;
       background-color: white;
     }
 
     th {
-      background-color: #ddd;
-      font-weight: normal;
-    }
-
-    .label-col {
       background-color: #eee;
       font-weight: bold;
+      cursor: default;
+    }
+
+    .blank {
+      background-color: #f0f0f0;
+      pointer-events: none;
     }
 
     button {
@@ -45,41 +46,58 @@
 </head>
 <body>
 
-<h1>🔍 Velika logična mreža</h1>
+<h1>🕵️ Velika logična mreža (6×6 s praznim kotom)</h1>
 
-<table id="bigTable">
+<table id="detectiveGrid">
   <tr>
     <th></th>
     <th>O1</th><th>O2</th><th>O3</th>
     <th>K1</th><th>K2</th><th>K3</th>
   </tr>
+  <!-- Vrstice 1–3 (Osumljenci × Vse) -->
   <tr>
-    <th class="label-col">S1</th>
+    <th>S1</th>
     <td></td><td></td><td></td>
     <td></td><td></td><td></td>
   </tr>
   <tr>
-    <th class="label-col">S2</th>
+    <th>S2</th>
     <td></td><td></td><td></td>
     <td></td><td></td><td></td>
   </tr>
   <tr>
-    <th class="label-col">S3</th>
+    <th>S3</th>
     <td></td><td></td><td></td>
     <td></td><td></td><td></td>
+  </tr>
+  <!-- Vrstice 4–6 (S1–S3 × samo O1–O3, ostalo PRAZNO) -->
+  <tr>
+    <th>S1</th>
+    <td></td><td></td><td></td>
+    <td class="blank"></td><td class="blank"></td><td class="blank"></td>
+  </tr>
+  <tr>
+    <th>S2</th>
+    <td></td><td></td><td></td>
+    <td class="blank"></td><td class="blank"></td><td class="blank"></td>
+  </tr>
+  <tr>
+    <th>S3</th>
+    <td></td><td></td><td></td>
+    <td class="blank"></td><td class="blank"></td><td class="blank"></td>
   </tr>
 </table>
 
-<button onclick="resetTable()">🔄 Počisti mrežo</button>
+<button onclick="resetGrid()">🔄 Počisti mrežo</button>
 
 <script>
   const symbols = ["", "✓", "✗"];
 
-  const table = document.getElementById("bigTable");
-  const cells = table.querySelectorAll("td");
+  const table = document.getElementById("detectiveGrid");
+  const cells = table.querySelectorAll("td:not(.blank)");
 
   cells.forEach((cell, index) => {
-    const saved = localStorage.getItem("bigTable-cell-" + index);
+    const saved = localStorage.getItem("detectiveGrid-cell-" + index);
     if (saved !== null) {
       cell.textContent = saved;
     }
@@ -88,17 +106,17 @@
       const current = cell.textContent;
       const next = symbols[(symbols.indexOf(current) + 1) % symbols.length];
       cell.textContent = next;
-      localStorage.setItem("bigTable-cell-" + index, next);
+      localStorage.setItem("detectiveGrid-cell-" + index, next);
     });
   });
 
-  function resetTable() {
+  function resetGrid() {
     cells.forEach((cell, index) => {
       cell.textContent = "";
-      localStorage.removeItem("bigTable-cell-" + index);
+      localStorage.removeItem("detectiveGrid-cell-" + index);
     });
   }
 </script>
 
 </body>
-      </html>
+</html>
