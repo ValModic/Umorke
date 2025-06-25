@@ -434,10 +434,8 @@ body.book .mark-button:hover {
     cell.classList.remove("error");
     cellWarnings.set(cell, 0);
   }
-  saveState();           // ne pozabi shraniti!
-  return;                // vse urejeno – ven iz handlerja
-}
-          if (currentMark === "✓") {
+             // ne pozabi shraniti!
+        if (currentMark === "✓") {
             const blockRow = Math.floor(r / 4) * 4;
             const blockCol = Math.floor(c / 4) * 4;
 
