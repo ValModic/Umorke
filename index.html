@@ -78,6 +78,24 @@
       font-size: 16px;
       width: 160px;
     }
+      .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #333;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: none;
+    z-index: 1000;
+    font-size: 14px;
+  }
+
+  .toast.show {
+    opacity: 0.9;
+  }
   </style>
 </head>
 <body>
@@ -99,6 +117,19 @@
     <input type="text" id="whereInput" placeholder="Kje?" />
     <input type="text" id="weaponInput" placeholder="S čim?" />
     <input type="text" id="whyInput" placeholder="Zakaj?" />
+  </div>
+
+  <!-- Upravljanje primerov -->
+  <div style="margin-top: 20px; text-align: center;">
+    <input type="text" id="caseNameInput" placeholder="Ime primera" style="width: 200px; padding: 8px; font-size: 16px;" />
+    <button onclick="saveCase()" style="padding: 8px 16px; font-size: 16px; margin-left: 10px;">💾 Shrani primer</button>
+    <button onclick="newCase()" style="padding: 8px 16px; font-size: 16px; margin-left: 10px; background-color: #28a745; color: white; border: none;">🆕 Nov primer</button>
+    <br /><br />
+    <select id="casesSelect" style="width: 220px; padding: 8px; font-size: 16px;">
+      <option value="" disabled selected>Izberi primer</option>
+    </select>
+    <button onclick="loadCase()" style="padding: 8px 16px; font-size: 16px; margin-left: 10px;">📂 Naloži</button>
+    <button onclick="deleteCase()" style="padding: 8px 16px; font-size: 16px; margin-left: 10px; background-color: #ff4d4d; color: white; border: none;">🗑️ Izbriši</button>
   </div>
 
   <script>
@@ -327,6 +358,7 @@
       table.appendChild(tr);
     }
 
+    // Naloži podatke ob zagonu
     loadState();
     loadInputs();
     attachInputListeners();
@@ -362,6 +394,156 @@
       }
       saveState();
     }
+
+    // Upravljanje primerov ---------------------------------------
+
+    function saveCase() {
+      const name = document.getElementById('caseNameInput').value.trim();
+      if (!name) {
+        alert('Prosim vnesi ime primera!');
+        return;
+      }
+
+      const state = cells.map(row => row.map(cell => (cell ? cell.textContent : null)));
+      const inputs = {
+        who: document.getElementById('whoInput').value,
+        where: document.getElementById('whereInput').value,
+        weapon: document.getElementById('weaponInput').value,
+        why: document.getElementById('whyInput').value,
+      };
+
+      const caseData = { state, inputs };
+
+      let cases = JSON.parse(localStorage.getItem('detectiveCases') || '{}');
+      cases[name] = caseData;
+      localStorage.setItem('detectiveCases', JSON.stringify(cases));
+
+      showToast(`✔ Primer "${name}" shranjen`);
+      updateCasesSelect();
+    }
+
+    function loadCase() {
+      const select = document.getElementById('casesSelect');
+      const name = select.value;
+      if (!name) {
+        alert('Prosim izberi primer za nalaganje!');
+        return;
+      }
+
+      const cases = JSON.parse(localStorage.getItem('detectiveCases') || '{}');
+      const caseData = cases[name];
+      if (!caseData) {
+        alert('Izbrani primer ni več na voljo.');
+        updateCasesSelect();
+        return;
+      }
+
+      for (let r = 0; r < 12; r++) {
+        for (let c = 0; c < 12; c++) {
+          const cell = cells[r][c];
+          if (cell && !cell.classList.contains('blank')) {
+            cell.textContent = caseData.state[r][c];
+            cell.classList.remove('error');
+            cellWarnings.set(cell, 0);
+          }
+        }
+      }
+
+      document.getElementById('whoInput').value = caseData.inputs.who || '';
+      document.getElementById('whereInput').value = caseData.inputs.where || '';
+      document.getElementById('weaponInput').value = caseData.inputs.weapon || '';
+      document.getElementById('whyInput').value = caseData.inputs.why || '';
+
+      document.getElementById('caseNameInput').value = name;
+
+      showToast(`📂 Primer "${name}" naložen`);
+    }
+
+    function deleteCase() {
+      const select = document.getElementById('casesSelect');
+      const name = select.value;
+      if (!name) {
+        alert('Prosim izberi primer za brisanje!');
+        return;
+      }
+
+      if (!confirm(`Ali res želiš izbrisati primer "${name}"?`)) return;
+
+      let cases = JSON.parse(localStorage.getItem('detectiveCases') || '{}');
+      if (cases.hasOwnProperty(name)) {
+        delete cases[name];
+        localStorage.setItem('detectiveCases', JSON.stringify(cases));
+        showToast(`🗑️ Primer "${name}" izbrisan`);
+        updateCasesSelect();
+
+        // Če je bil izbrani primer naložen, ga počistimo
+        if (document.getElementById('caseNameInput').value === name) {
+          resetGrid();
+          clearInputs();
+          document.getElementById('caseNameInput').value = "";
+        }
+
+        select.selectedIndex = 0;
+      } else {
+        alert('Izbrani primer ni najden.');
+      }
+    }
+
+    function newCase() {
+      if (!confirm("Ali želiš začeti nov primer? Vse neshranjene spremembe bodo izgubljene.")) return;
+      resetGrid();
+      clearInputs();
+      document.getElementById('caseNameInput').value = "";
+      const select = document.getElementById('casesSelect');
+      select.selectedIndex = 0;
+    }
+
+    function clearInputs() {
+      document.getElementById('whoInput').value = "";
+      document.getElementById('whereInput').value = "";
+      document.getElementById('weaponInput').value = "";
+      document.getElementById('whyInput').value = "";
+      saveInputs();
+    }
+
+    function updateCasesSelect() {
+      const select = document.getElementById('casesSelect');
+      const cases = JSON.parse(localStorage.getItem('detectiveCases') || '{}');
+
+      const current = select.value;
+
+      select.innerHTML = '<option value="" disabled selected>Izberi primer</option>';
+
+      Object.keys(cases).forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        select.appendChild(option);
+      });
+
+      if (current && cases[current]) {
+        select.value = current;
+      }
+    }
+
+    // Ob zagonu naloži seznam primerov
+    updateCasesSelect();
+
+    // Naloži stanje mreže in vnosov ob zagonu
+    loadState();
+    loadInputs();
+    attachInputListeners();
+    
+    function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2500);
+}
   </script>
+  <div id="toast" class="toast"></div>
 </body>
 </html>
