@@ -428,10 +428,10 @@ body.book .mark-button:hover {
               }
             }
           }
-        } else {More actions
+        } else {
           cell.textContent = currentMark;
-             // ne pozabi shraniti!
-        if (currentMark === "✓") {
+
+          if (currentMark === "✓") {
             const blockRow = Math.floor(r / 4) * 4;
             const blockCol = Math.floor(c / 4) * 4;
 
