@@ -131,12 +131,74 @@ body.dark button {
 body.dark .toast {
   background-color: #222;
 }
+body.book {
+  background-color: #fdf6e3;
+  color: #333;
+  font-family: Georgia, serif;
+  background-image: repeating-linear-gradient(0deg, #fdf6e3, #fdf6e3 10px, #f8f1dc 10px, #f8f1dc 20px);
+}
+
+body.book td, body.book th {
+  background-color: #fffdf5;
+  border: 1px solid #c2b280;
+  color: #222;
+}
+
+body.book .blank {
+  background-color: #f3e7c2;
+}
+
+body.book .mark-button.selected {
+  background-color: #ded3aa;
+  border-color: #c2b280;
+}
+
+body.book input {
+  background-color: #fffdf0;
+  border: 1px solid #c2b280;
+  color: #333;
+}
+.theme-switcher {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-family: sans-serif;
+  background-color: rgba(255,255,255,0.8);
+  padding: 6px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+body.dark .theme-switcher {
+  background-color: rgba(50, 50, 50, 0.9);
+  color: #fff;
+}
+
+body.book .theme-switcher {
+  background-color: #f3e7c2;
+  color: #333;
+}
+
 
   </style>
 </head>
 <body>
   <h1>🔍 Detektivska Mreža 12×12</h1>
-<button onclick="toggleTheme()" style="position: absolute; top: 20px; right: 20px; padding: 8px 14px; font-size: 14px;">🌗 Tema</button>
+<div class="theme-switcher">
+  Tema:
+  <select id="themeSelect" onchange="changeTheme()" style="font-size:14px; padding:4px 8px;">
+    <option value="light">☀️ Svetla</option>
+    <option value="dark">🌙 Temna</option>
+    <option value="book">📖 Knjiga</option>
+  </select>
+</div>
+
+<div id="clock" style="position: absolute; top: 20px; left: 20px; font-size: 20px; font-family: monospace;"></div>
 
   <div class="controls">
     <button class="mark-button" id="btn-check" onclick="setMark('✓', this)">✓</button>
@@ -580,18 +642,27 @@ body.dark .toast {
     toast.classList.remove("show");
   }, 2500);
 }
-function toggleTheme() {
-  const isDark = document.body.classList.toggle("dark");
-  localStorage.setItem("theme", isDark ? "dark" : "light");
+function changeTheme() {
+  const selected = document.getElementById("themeSelect").value;
+  document.body.className = selected;
+  localStorage.setItem("detectiveTheme", selected);
 }
 
-// Ob zagonu naloži temo
-(function () {
-  const savedTheme = localStorage.getItem("theme");
-  if (savedTheme === "dark") {
-    document.body.classList.add("dark");
-  }
-})();
+// Ob zagonu naloži temo iz localStorage
+const savedTheme = localStorage.getItem("detectiveTheme") || "light";
+document.body.className = savedTheme;
+document.getElementById("themeSelect").value = savedTheme;
+ function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const s = String(now.getSeconds()).padStart(2, '0');
+  document.getElementById("clock").textContent = `${h}:${m}:${s}`;
+}
+
+setInterval(updateClock, 1000);
+updateClock(); // takoj za prikaz
+
 
   </script>
   <div id="toast" class="toast"></div>
