@@ -428,9 +428,15 @@ body.book .mark-button:hover {
               }
             }
           }
-        } else {
-          cell.textContent = currentMark;
-
+        else if (cell.textContent === "✗") {
+    // 👉 pobriši SAMO izbrani ✗
+    cell.textContent = "";
+    cell.classList.remove("error");
+    cellWarnings.set(cell, 0);
+  }
+  saveState();           // ne pozabi shraniti!
+  return;                // vse urejeno – ven iz handlerja
+}
           if (currentMark === "✓") {
             const blockRow = Math.floor(r / 4) * 4;
             const blockCol = Math.floor(c / 4) * 4;
