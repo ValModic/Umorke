@@ -428,12 +428,8 @@ body.book .mark-button:hover {
               }
             }
           }
-        }else if (cell.textContent === "✗") {
-    // 👉 pobriši SAMO izbrani ✗
-    cell.textContent = "";
-    cell.classList.remove("error");
-    cellWarnings.set(cell, 0);
-  }
+        } else {More actions
+          cell.textContent = currentMark;
              // ne pozabi shraniti!
         if (currentMark === "✓") {
             const blockRow = Math.floor(r / 4) * 4;
